@@ -9,7 +9,7 @@ JsonUrl encoding and decoding support.
 ```elixir
 def deps do
   [
-    {:json_url, "~> 0.1.0"}
+    {:json_url, "~> 0.1.2"}
   ]
 end
 ```
