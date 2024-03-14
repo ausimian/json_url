@@ -9,7 +9,7 @@ defmodule JsonUrl.MixProject do
       elixir: "~> 1.14",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      source_url: "https://github.com/ausimian/exmobiledevice",
+      source_url: "https://github.com/ausimian/json_url",
       package: package(),
       docs: docs()
     ]
@@ -36,7 +36,7 @@ defmodule JsonUrl.MixProject do
       description: "JsonUrl encoding and decoding support",
       licenses: ["MIT"],
       links: %{
-        "GitHub" => "https://github.com/ausimian/exmobiledevice"
+        "GitHub" => "https://github.com/ausimian/json_url"
       }
     ]
   end
@@ -45,8 +45,7 @@ defmodule JsonUrl.MixProject do
     [
       main: "readme",
       source_ref: "#{Mix.Project.config()[:version]}",
-      source_url: "https://github.com/ausimian/exmobiledevice",
-      logo: "assets/exmobiledevice.png",
+      source_url: "https://github.com/ausimian/json_url",
       extras: [
         "README.md",
         "CHANGELOG.md",
