@@ -1,11 +1,13 @@
 defmodule JsonUrl.MixProject do
   use Mix.Project
 
+  @vsn "0.1.2"
+
   def project do
     [
       app: :json_url,
       description: "JsonUrl encoding and decoding support",
-      version: "0.1.1",
+      version: @vsn,
       elixir: "~> 1.14",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -44,7 +46,7 @@ defmodule JsonUrl.MixProject do
   defp docs do
     [
       main: "readme",
-      source_ref: "#{Mix.Project.config()[:version]}",
+      source_ref: @vsn,
       source_url: "https://github.com/ausimian/json_url",
       extras: [
         "README.md",

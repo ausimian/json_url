@@ -43,6 +43,7 @@ defmodule JsonUrl do
   @doc """
   Decode a JsonUrl string to an Elixir term
   """
+  @spec decode(String.t()) :: {:ok, any()} | {:error, any()}
   def decode(s) do
     case __MODULE__.Parser.expr(s) do
       {:ok, [parsed], "", _, _, _} ->
