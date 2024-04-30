@@ -16,8 +16,8 @@ defmodule JsonUrlTest do
     assert "!false" == JsonUrl.encode("false")
   end
 
-  test "empty string is encode as e" do
-    assert "e" == JsonUrl.encode("")
+  test "empty string is encode as !e" do
+    assert "!e" == JsonUrl.encode("")
   end
 
   test "numeric strings are escaped" do

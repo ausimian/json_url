@@ -13,12 +13,8 @@ defmodule JsonUrl do
   def encode(s) when is_atom(s), do: encode(Atom.to_string(s))
   def encode(n) when is_integer(n) or is_float(n), do: to_string(n)
 
-  def encode(<<>>), do: "e"
+  def encode(<<>>), do: "!e"
   def encode(s) when s in ["true", "false", "null"], do: <<?!, s::binary>>
-
-  def encode(<<?e, _::binary>> = s) do
-    <<?!, escape(s)::binary>>
-  end
 
   def encode(<<?-, c, rest::binary>>) when is_digit(c) do
     <<?!, ?-, c, escape(rest)::binary>>
@@ -82,13 +78,13 @@ defmodule JsonUrl do
       |> integer(min: 1)
       |> reduce({Enum, :product, []})
 
-    empty_string = string("e") |> replace("")
+    empty_string = string("!e") |> replace("")
 
     tok =
       choice([
         string("!") |> ascii_string(@escaped, 1) |> reduce(:unescape),
         string("!") |> ascii_string([?-, ?0..?9], min: 1) |> reduce(:unescape),
-        string("!") |> ascii_string([?t, ?f, ?n, ?e], 1) |> reduce(:unescape),
+        string("!") |> ascii_string([?t, ?f, ?n], 1) |> reduce(:unescape),
         string("+") |> replace(" "),
         ascii_string(@unescaped, min: 1)
       ])
