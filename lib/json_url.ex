@@ -86,7 +86,7 @@ defmodule JsonUrl do
         string("!") |> ascii_string([?-, ?0..?9], min: 1) |> reduce(:unescape),
         string("!") |> ascii_string([?t, ?f, ?n], 1) |> reduce(:unescape),
         string("+") |> replace(" "),
-        ascii_string(@unescaped, min: 1)
+        utf8_string(@unescaped, min: 1)
       ])
 
     str =

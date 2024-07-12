@@ -1,7 +1,7 @@
 defmodule JsonUrl.MixProject do
   use Mix.Project
 
-  @vsn "0.2.0"
+  @vsn "0.3.0"
 
   def project do
     [
@@ -29,7 +29,7 @@ defmodule JsonUrl.MixProject do
     [
       {:nimble_parsec, "~> 1.4.0", runtime: false},
       {:ex_doc, "~> 0.31", only: :dev, runtime: false},
-      {:stream_data, "~> 0.6.0", only: :test}
+      {:stream_data, "~> 1.1.1", only: :test}
     ]
   end
 

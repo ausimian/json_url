@@ -71,6 +71,12 @@ defmodule JsonUrlTest do
     end
   end
 
+  property "utf-8 strings round-trip" do
+    check all(s <- string(:utf8)) do
+      assert {:ok, ^s} = JsonUrl.encode(s) |> JsonUrl.decode()
+    end
+  end
+
   property "lists round trip" do
     check all(l <- list_of(one_of([integer(), boolean(), string(:ascii)]))) do
       assert {:ok, ^l} = JsonUrl.encode(l) |> JsonUrl.decode()

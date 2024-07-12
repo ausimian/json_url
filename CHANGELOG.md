@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.0 - 13 Jul 2024
+
+- Support utf-8 strings
+
 ## 0.2.0 - 30 Apr 2024
 
 - Breaking change: The empty string decodes to "!e" and "e" is otherwise
