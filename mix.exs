@@ -47,7 +47,7 @@ defmodule JsonUrl.MixProject do
       {:ex_doc, "~> 0.31", only: :dev, runtime: false},
       {:excoveralls, "~> 0.18", only: :test},
       {:publisho, "~> 1.0", only: :dev, runtime: false},
-      {:stream_data, "~> 1.1.1", only: :test}
+      {:stream_data, "~> 1.4", only: :test}
     ]
   end
 
