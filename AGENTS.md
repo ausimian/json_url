@@ -5,8 +5,9 @@ text. Published to hex.pm as `json_url`.
 
 ## Layout
 
-- `lib/json_url.ex`: the whole public API (`encode/1`, `decode/1`). The
-  parser is built with `nimble_parsec`.
+- `lib/json_url.ex`: the whole public API (`encode/1`, `decode/2`). The
+  parser is built with `nimble_parsec`. `decode/2` percent-decodes the
+  input first, unless the `legacy: true` option asks for 0.3.0 behaviour.
 - `test/json_url_test.exs`: example tests plus `stream_data` property tests
   (round-trip encode/decode).
 
