@@ -14,23 +14,30 @@ env:
 
 jobs:
   test:
-    name: Test (Elixir ${{ matrix.elixir }} / OTP ${{ matrix.otp }})
+    name: Test (${{ matrix.label }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         include:
           # Minimum supported version
-          - elixir: "1.18"
+          - label: Elixir 1.18 / OTP 27
+            elixir: "1.18"
             otp: "27"
           # Preferred version; also runs the lint checks
-          - elixir: "1.19.5"
+          - label: Elixir 1.19.5 / OTP 28.3
+            elixir: "1.19.5"
             otp: "28.3"
             lint: true
+          # Latest stable releases (excludes release candidates)
+          - label: latest Elixir / OTP
+            elixir: "> 0"
+            otp: "> 0"
     steps:
       - uses: actions/checkout@v5
 
       - uses: erlef/setup-beam@v1
+        id: beam
         with:
           elixir-version: ${{ matrix.elixir }}
           otp-version: ${{ matrix.otp }}
@@ -40,9 +47,9 @@ jobs:
           path: |
             deps
             _build
-          key: ${{ runner.os }}-mix-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('mix.lock') }}
+          key: ${{ runner.os }}-mix-${{ steps.beam.outputs.elixir-version }}-${{ steps.beam.outputs.otp-version }}-${{ hashFiles('mix.lock') }}
           restore-keys: |
-            ${{ runner.os }}-mix-${{ matrix.elixir }}-${{ matrix.otp }}-
+            ${{ runner.os }}-mix-${{ steps.beam.outputs.elixir-version }}-${{ steps.beam.outputs.otp-version }}-
 
       - run: mix deps.get
 

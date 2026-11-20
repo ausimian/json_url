@@ -12,7 +12,8 @@ text. Published to hex.pm as `json_url`.
 
 ## Development
 
-- Elixir `~> 1.18`. CI tests 1.18 / OTP 27 and 1.19.5 / OTP 28.3.
+- Elixir `~> 1.18`. CI tests 1.18 / OTP 27, 1.19.5 / OTP 28.3 and the
+  latest stable Elixir / OTP.
 - Run `mix precommit` before every commit. It runs compile with warnings
   as errors, `deps.unlock --unused`, `format`, `credo --strict` and `test`.
   Don't run the checks one at a time.
