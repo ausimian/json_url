@@ -1,6 +1,10 @@
 ### Changed
 
 - Require Elixir 1.18 or later.
+- Escape only strings that would otherwise decode as a number or keyword,
+  so `"16 Pro"` encodes as `16+Pro` rather than `!16+Pro`. This matches the
+  JSON→URL reference implementation, but json_url 0.3.0 and earlier can't
+  decode the new form.
 
 ### Fixed
 

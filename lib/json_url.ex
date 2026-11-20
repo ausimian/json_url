@@ -2,7 +2,6 @@ defmodule JsonUrl do
   @moduledoc """
   Functions for encoding and decoding terms to [JsonUrl](https://github.com/jsonurl/specification) format.
   """
-  defguardp is_digit(c) when c >= ?0 and c <= ?9
 
   @doc """
   Encode a term to a JsonUrl 'address-bar friendly' string.
@@ -14,17 +13,14 @@ defmodule JsonUrl do
   def encode(n) when is_integer(n) or is_float(n), do: to_string(n)
 
   def encode(<<>>), do: "!e"
-  def encode(s) when s in ["true", "false", "null"], do: <<?!, s::binary>>
 
-  def encode(<<?-, c, rest::binary>>) when is_digit(c) do
-    <<?!, ?-, c, escape(rest)::binary>>
+  def encode(s) when is_binary(s) do
+    escaped = escape(s)
+
+    # A string that would otherwise read back as a number or keyword is
+    # prefixed with `!`, which escapes its first character.
+    if __MODULE__.Parser.typed_literal?(escaped), do: "!" <> escaped, else: escaped
   end
-
-  def encode(<<c, rest::binary>>) when is_digit(c) do
-    <<?!, c, escape(rest)::binary>>
-  end
-
-  def encode(s) when is_binary(s), do: escape(s)
 
   def encode(m) when is_map(m) do
     props = for {k, v} <- m, do: [encode(k), ?:, encode(v)]
@@ -111,6 +107,10 @@ defmodule JsonUrl do
       ])
 
     defparsec(:value, choice([composite, empty_string, literal]) |> label("a JsonUrl value"))
+
+    @doc false
+    @spec typed_literal?(String.t()) :: boolean()
+    def typed_literal?(text), do: text in ["null", "true", "false"] or number?(text)
 
     defp number?(text),
       do: Regex.match?(~r/\A-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?\z/, text)

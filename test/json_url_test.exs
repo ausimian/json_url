@@ -122,6 +122,28 @@ defmodule JsonUrlTest do
     end
   end
 
+  describe "encoding strings" do
+    test "only strings that would read back as numbers are escaped" do
+      assert "16+Pro" == JsonUrl.encode("16 Pro")
+      assert "001" == JsonUrl.encode("001")
+      assert "false-positive" == JsonUrl.encode("false-positive")
+      assert "!1.5" == JsonUrl.encode("1.5")
+      assert "!-0" == JsonUrl.encode("-0")
+    end
+
+    test "escaping is decided on the encoded form" do
+      # "1e 2" encodes its space as `+`, which would read back as a number.
+      assert "!1e+2" == JsonUrl.encode("1e 2")
+      assert "1e!+2" == JsonUrl.encode("1e+2")
+    end
+
+    test "number-like strings round-trip" do
+      for s <- ["1e 2", "1.5", "-0", "1e+2", "001", "-1", "16 Pro", "1e400", "true", "-"] do
+        assert {:ok, ^s} = JsonUrl.encode(s) |> JsonUrl.decode()
+      end
+    end
+  end
+
   property "atoms round-trip" do
     check all(a <- one_of([atom(:alphanumeric), atom(:alias)])) do
       {:ok, ao} = JsonUrl.encode(a) |> JsonUrl.decode()
