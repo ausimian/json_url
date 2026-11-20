@@ -1,5 +1,7 @@
 # Changelog
 
+<!-- %% CHANGELOG_ENTRIES %% -->
+
 ## 0.3.0 - 13 Jul 2024
 
 - Support utf-8 strings
