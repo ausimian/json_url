@@ -34,7 +34,7 @@ jobs:
             elixir: "> 0"
             otp: "> 0"
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - uses: erlef/setup-beam@v1
         id: beam
@@ -42,7 +42,7 @@ jobs:
           elixir-version: ${{ matrix.elixir }}
           otp-version: ${{ matrix.otp }}
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: |
             deps
