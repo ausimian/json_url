@@ -40,6 +40,110 @@ defmodule JsonUrlTest do
     assert {:error, :incomplete} = JsonUrl.decode("123 ")
   end
 
+  describe "decoding numbers" do
+    test "fractions and exponents decode as floats" do
+      assert {:ok, 1.25} = JsonUrl.decode("1.25")
+      assert {:ok, -0.125} = JsonUrl.decode("-0.125")
+      assert {:ok, 100.0} = JsonUrl.decode("1e2")
+      assert {:ok, 100.0} = JsonUrl.decode("1e+2")
+      assert {:ok, -3.0e-4} = JsonUrl.decode("-3E-4")
+    end
+
+    test "floats decode inside composites" do
+      assert {:ok, %{"x" => [1.5, -0.25, 100.0]}} = JsonUrl.decode("(x:(1.5,-0.25,1e+2))")
+    end
+
+    test "integers decode as integers" do
+      assert {:ok, 42} = JsonUrl.decode("42")
+      assert {:ok, -7} = JsonUrl.decode("-7")
+      assert {:ok, 9_223_372_036_854_775_807} = JsonUrl.decode("9223372036854775807")
+    end
+
+    test "text outside the JSON number grammar decodes as a string" do
+      for text <- ["001", "-01", "1.", "1e", "0x10", ".5", "-"] do
+        assert {:ok, ^text} = JsonUrl.decode(text)
+      end
+    end
+
+    test "a number prefix does not make the token a number" do
+      assert {:ok, "16 Pro"} = JsonUrl.decode("16+Pro")
+      assert {:ok, "-3 days"} = JsonUrl.decode("-3+days")
+      assert {:ok, "123 "} = JsonUrl.decode("123+")
+    end
+
+    test "a float too large to represent is an error" do
+      assert {:error, _} = JsonUrl.decode("1e400")
+      assert {:error, _} = JsonUrl.decode("(1e400)")
+    end
+  end
+
+  describe "decoding keywords" do
+    test "a keyword prefix does not make the token a keyword" do
+      assert {:ok, "trueish"} = JsonUrl.decode("trueish")
+      assert {:ok, "false-positive"} = JsonUrl.decode("false-positive")
+      assert {:ok, "nullary"} = JsonUrl.decode("nullary")
+      assert {:ok, "false alarm"} = JsonUrl.decode("false+alarm")
+    end
+  end
+
+  describe "decoding escaped literals" do
+    test "an escape makes the literal a string" do
+      assert {:ok, "true"} = JsonUrl.decode("!true")
+      assert {:ok, "123"} = JsonUrl.decode("!123")
+      assert {:ok, "1.5"} = JsonUrl.decode("!1.5")
+      assert {:ok, "16 Pro"} = JsonUrl.decode("!16+Pro")
+    end
+  end
+
+  describe "decoding composites" do
+    test "object keys are always strings" do
+      assert {:ok, %{"1" => 2}} = JsonUrl.decode("(1:2)")
+      assert {:ok, %{"true" => 1}} = JsonUrl.decode("(true:1)")
+      assert {:ok, %{"null" => nil}} = JsonUrl.decode("(null:null)")
+      assert {:ok, %{"" => 1}} = JsonUrl.decode("(!e:1)")
+    end
+
+    test "objects must contain only key-value members" do
+      assert {:error, _} = JsonUrl.decode("(a:1,b)")
+      assert {:error, _} = JsonUrl.decode("(a:1,(b:2))")
+      assert {:error, _} = JsonUrl.decode("(a:1,())")
+    end
+
+    test "arrays must contain only values" do
+      assert {:error, _} = JsonUrl.decode("(a,b:1)")
+      assert {:error, _} = JsonUrl.decode("(1,(2),c:3)")
+    end
+
+    test "nested composites of either kind are valid members" do
+      assert {:ok, []} = JsonUrl.decode("()")
+      assert {:ok, %{"a" => []}} = JsonUrl.decode("(a:())")
+      assert {:ok, [%{"a" => 1}, "b"]} = JsonUrl.decode("((a:1),b)")
+      assert {:ok, ["a", %{"b" => 1}]} = JsonUrl.decode("(a,(b:1))")
+    end
+  end
+
+  describe "encoding strings" do
+    test "only strings that would read back as numbers are escaped" do
+      assert "16+Pro" == JsonUrl.encode("16 Pro")
+      assert "001" == JsonUrl.encode("001")
+      assert "false-positive" == JsonUrl.encode("false-positive")
+      assert "!1.5" == JsonUrl.encode("1.5")
+      assert "!-0" == JsonUrl.encode("-0")
+    end
+
+    test "escaping is decided on the encoded form" do
+      # "1e 2" encodes its space as `+`, which would read back as a number.
+      assert "!1e+2" == JsonUrl.encode("1e 2")
+      assert "1e!+2" == JsonUrl.encode("1e+2")
+    end
+
+    test "number-like strings round-trip" do
+      for s <- ["1e 2", "1.5", "-0", "1e+2", "001", "-1", "16 Pro", "1e400", "true", "-"] do
+        assert {:ok, ^s} = JsonUrl.encode(s) |> JsonUrl.decode()
+      end
+    end
+  end
+
   property "atoms round-trip" do
     check all(a <- one_of([atom(:alphanumeric), atom(:alias)])) do
       {:ok, ao} = JsonUrl.encode(a) |> JsonUrl.decode()
@@ -62,6 +166,18 @@ defmodule JsonUrlTest do
   property "integers round-trip" do
     check all(i <- integer()) do
       assert {:ok, ^i} = JsonUrl.encode(i) |> JsonUrl.decode()
+    end
+  end
+
+  property "floats round-trip" do
+    check all(f <- float()) do
+      assert {:ok, ^f} = JsonUrl.encode(f) |> JsonUrl.decode()
+    end
+  end
+
+  property "number-like strings round-trip" do
+    check all(s <- string([?0..?9, ?-, ?+, ?., ?e, ?E, ?\s], min_length: 1)) do
+      assert {:ok, ^s} = JsonUrl.encode(s) |> JsonUrl.decode()
     end
   end
 
@@ -91,7 +207,7 @@ defmodule JsonUrlTest do
   end
 
   property "nested structures round trip" do
-    scalars = one_of([integer(), boolean(), string(:ascii), specials()])
+    scalars = one_of([integer(), float(), boolean(), string(:ascii), specials()])
 
     objects =
       tree(scalars, fn nested ->
