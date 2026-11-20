@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+env:
+  MIX_ENV: test
+
+jobs:
+  test:
+    name: Test (${{ matrix.label }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Minimum supported version
+          - label: Elixir 1.18 / OTP 27
+            elixir: "1.18"
+            otp: "27"
+          # Preferred version; also runs the lint checks
+          - label: Elixir 1.19.5 / OTP 28.3
+            elixir: "1.19.5"
+            otp: "28.3"
+            lint: true
+          # Latest stable releases (excludes release candidates)
+          - label: latest Elixir / OTP
+            elixir: "> 0"
+            otp: "> 0"
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: erlef/setup-beam@v1
+        id: beam
+        with:
+          elixir-version: ${{ matrix.elixir }}
+          otp-version: ${{ matrix.otp }}
+
+      - uses: actions/cache@v6
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-mix-${{ steps.beam.outputs.elixir-version }}-${{ steps.beam.outputs.otp-version }}-${{ hashFiles('mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-mix-${{ steps.beam.outputs.elixir-version }}-${{ steps.beam.outputs.otp-version }}-
+
+      - run: mix deps.get
+
+      - run: mix deps.unlock --check-unused
+        if: matrix.lint
+
+      - run: mix compile --warnings-as-errors
+
+      - run: mix format --check-formatted
+        if: matrix.lint
+
+      - run: mix credo --strict
+        if: matrix.lint
+
+      - run: mix coveralls
